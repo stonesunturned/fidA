@@ -1,0 +1,106 @@
+##TITLE=Parameter List
+##JCAMPDX=4.24
+##DATATYPE=Parameter Values
+##ORIGIN=Bruker BioSpin MRI GmbH
+##OWNER=neajam
+$$ Wed Jun  7 11:43:12 2017 EDT (UT-4h)  neajam
+$$ /opt/PV5.1/data/neajam/nmr/20170607_JNE_rodentAD_pilot.HR1/10/pdata/2/visu_pars
+##$VisuVersion=1
+##$VisuUid=( 65 )
+<2.16.756.5.5.100.279771525.22797.1496850192.2>
+##$VisuCreator=( 65 )
+<ParaVision>
+##$VisuCreatorVersion=( 65 )
+<5.1>
+##$VisuCreationDate=( 21 )
+<11:43:12  7 Jun 2017>
+$$ @vis= VisuVersion VisuUid VisuCreator VisuCreatorVersion VisuCreationDate
+##$VisuCoreFrameCount=1
+##$VisuCoreDim=1
+##$VisuCoreSize=( 1 )
+2048
+##$VisuCoreDimDesc=( 1 )
+spectroscopic
+$$ @vis= VisuInstance VisuCoreFrameCount VisuCoreDim VisuCoreSize
+##$VisuCoreExtent=( 1 )
+13.3410858090856
+##$VisuCoreUnits=( 1, 65 )
+<ppm>
+##$VisuCoreDataMin=( 1 )
+1551044
+##$VisuCoreDataMax=( 1 )
+2147482880
+$$ @vis= VisuCoreDimDesc VisuCoreExtent VisuCoreUnits VisuCoreDataMin
+##$VisuCoreDataOffs=( 1 )
+0
+##$VisuCoreDataSlope=( 1 )
+0.00379550819304134
+##$VisuCoreFrameType=MAGNITUDE_IMAGE
+$$ @vis= VisuCoreDataMax VisuCoreDataOffs VisuCoreDataSlope VisuCoreFrameType
+##$VisuCoreWordType=_32BIT_SGN_INT
+##$VisuCoreByteOrder=littleEndian
+$$ @vis= VisuCore VisuCoreWordType VisuCoreByteOrder VisuPixel
+##$VisuSubjectName=( 65 )
+<JNE_rodentAD_pilot>
+##$VisuSubjectId=( 65 )
+<20170607_JNE_rodentAD_pilot>
+##$VisuSubjectBirthDate=( 9 )
+<>
+##$VisuSubjectSex=MALE
+$$ @vis= VisuFrameOrderDesc VisuSubjectName VisuSubjectId VisuSubjectBirthDate
+##$VisuSubjectComment=( 2048 )
+<>
+##$VisuStudyUid=( 65 )
+<2.16.756.5.5.100.279771525.29970.1496842185.345>
+##$VisuStudyDate=( 21 )
+<10:29:45  7 Jun 2017>
+$$ @vis= VisuSubjectSex VisuSubjectComment VisuSubject VisuStudyUid
+##$VisuStudyId=( 65 )
+<20170607_JNE_rodentAD_pilot>
+##$VisuStudyNumber=1
+##$VisuSubjectWeight=5
+##$VisuStudyReferringPhysician=( 65 )
+<>
+$$ @vis= VisuStudyDate VisuStudyId VisuStudyNumber VisuSubjectWeight
+##$VisuStudyDescription=( 65 )
+<2nd pilot test of MRS and strucutral MRI in rat brain for CIH...>
+##$VisuSeriesNumber=655362
+$$ @vis= VisuStudyReferringPhysician VisuStudyDescription VisuStudy
+##$VisuSubjectPosition=Head_Supine
+##$VisuSeriesTypeId=( 65 )
+<ACQ_BRUKER_PVM>
+##$VisuAcqSoftwareVersion=( 65 )
+<5.1>
+$$ @vis= VisuSeriesNumber VisuSubjectPosition VisuSeriesTypeId VisuSeries
+##$VisuInstitution=( 65 )
+<Douglas Mental Health Research Center>
+##$VisuStation=( 65 )
+<BioSpec 70/30 USR>
+##$VisuAcqDate=( 21 )
+<11:25:17  7 Jun 2017>
+$$ @vis= VisuAcqSoftwareVersion VisuInstitution VisuStation VisuEquipment
+##$VisuAcqEchoTrainLength=1
+##$VisuAcqSequenceName=( 40 )
+<PRESS (pvm)>
+##$VisuAcqNumberOfAverages=256
+$$ @vis= VisuAcqDate VisuAcqEchoTrainLength VisuAcqSequenceName
+##$VisuAcqImagingFrequency=300.306160513697
+##$VisuAcqImagedNucleus=( 8 )
+<1H>
+##$VisuAcqPixelBandwidth=1.95625500801282
+$$ @vis= VisuAcqNumberOfAverages VisuAcqImagingFrequency VisuAcqImagedNucleus
+##$VisuAcqFlipAngle=90
+##$VisuAcqSize=( 1 )
+2048
+##$VisuAcqImageSizeAccellerated=No
+$$ @vis= VisuAcqPixelBandwidth VisuAcqFlipAngle VisuAcqSize
+##$VisuAcqImagePhaseEncDir=( 1 )
+no_phase_dir
+##$VisuAcqEchoTime=( 1 )
+0
+##$VisuAcquisitionProtocol=( 65 )
+<PRESS-wsupOff-8avg-2.5x3.5x3.5mm-TE11.12>
+$$ @vis= VisuAcqImageSizeAccellerated VisuAcqImagePhaseEncDir VisuAcqEchoTime
+##$VisuAcqScanTime=780000
+$$ @vis= VisuAcquisitionProtocol VisuAcqScanTime VisuAcquisition Visu
+##END=

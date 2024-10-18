@@ -1,0 +1,14 @@
+##TITLE= Audit trail, TOPSPIN		Version 2.0PV
+##JCAMPDX= 5.01
+##ORIGIN= Bruker BioSpin GmbH
+##OWNER= neajam
+$$ /opt/PV5.1/data/neajam/nmr/20170607_JNE_rodentAD_pilot.HR1/10/pdata/1/auditp.txt
+##AUDIT TRAIL=  $$ (NUMBER, WHEN, WHO, WHERE, PROCESS, VERSION, WHAT)
+(   1,<2017-06-07 11:39:09.751 -0400>,<neajam>,<bruker7t>,<proc1d>,<TOPSPIN 2.0PV>,
+      <ft FT_mod = 6 PKNL = 1 SI = 2K 
+       data hash MD5: 2K
+       00 CB 54 B4 4D D8 76 CC B6 FA B9 DC 34 3F CD 31>)
+##END=
+
+$$ hash MD5
+$$ 8C E9 DF 61 97 08 F0 D7 B1 2E A0 A2 A4 6F 38 55

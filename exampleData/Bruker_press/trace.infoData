@@ -1,0 +1,4 @@
+::dd::info introTrace	; ::Prog::fileIndex 0; ::Prog::fileClose;set ::File::name(0) //opt/PV5.1/data/neajam/nmr/20170607_JNE_rodentAD_pilot.HR1/10//trace.singleData ;set ::File::type(0) {32 Bit float} ;set ::File::access(0) rb; ::Prog::fileUpdate 0
+::dd::info introTrace	; ::Prog::fileIndex 1; ::Prog::fileClose;set ::File::name(1) //opt/PV5.1/data/neajam/nmr/20170607_JNE_rodentAD_pilot.HR1/10//trace.dualData ;set ::File::type(1) {32 Bit float} ;set ::File::access(1) rb; ::Prog::fileUpdate 1
+::dd::info introTrace	; ::Prog::fileIndex 2; ::Prog::fileClose;set ::File::name(2) //opt/PV5.1/data/neajam/nmr/20170607_JNE_rodentAD_pilot.HR1/10//trace.resultData ;set ::File::type(2) {32 Bit float} ;set ::File::access(2) rb; ::Prog::fileUpdate 2
+::dd::info Result ;::Prog::single; ::Prog::fileIndex 2; ::Prog::rmem 256; ::Prog::fileSeek 0; ::Prog::fileRead
