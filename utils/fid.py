@@ -1,10 +1,11 @@
+# fidA/utils/fid.py
 import os
 import numpy as np
 from scipy.fft import fftshift, ifft, fft
 from datetime import date
 GAMMAP=42577000
 import matplotlib.pyplot as plt
-import fidA_processing as fop
+import fidA.fidA_processing as fop
 from spec2nii.GE.ge_pfile import read_pfile
 
 class FID(object):

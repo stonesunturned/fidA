@@ -1,3 +1,5 @@
+# fidA/utils/ios.py
+
 import numpy as np
 import os
 from ..utils.fid import FID
@@ -210,11 +212,13 @@ def io_loadspec_bruk(inDir, spectrometer=False, try_raw=False, info_dict=False, 
                 raw_dat_pts = get_par(os.path.join(inDir, 'method'), '$PVM_DigNp', 'int')
             else:
                 raw_dat_pts = len(real_fid)
-            raw_avgs = int(np.shape(real_fid)[0] / raw_dat_pts)
-            if np.mod(real_fid.shape[0], raw_dat_pts) != 0:
-                print('number of repetitions cannot be accurately found')
-            fids_raw = np.reshape(fids_raw, [-1, raw_dat_pts]).T
-            avgdim = -1
+            raw_dat_pts = int(raw_dat_pts)
+            total_points = len(real_fid)
+            raw_avgs = total_points // raw_dat_pts
+            if total_points % raw_dat_pts != 0:
+                print('Number of repetitions cannot be accurately found')
+            fids_raw = np.reshape(fids_raw, (raw_avgs, raw_dat_pts)).T
+            avgdim = 1
             coildim = -1
         elif fname.endswith('fid.ref'):
             fids_raw = np.reshape(fids_raw, [raw_avgs, -1]).T
@@ -233,10 +237,10 @@ def io_loadspec_bruk(inDir, spectrometer=False, try_raw=False, info_dict=False, 
         except IndexError:
             fids_trunc = np.expand_dims(fids_raw, axis=1)
             fids_trunc = fids_trunc[ADC_OFFSET:, :]
-        fids = np.pad(fids_trunc, pad_width=[[0, ADC_OFFSET], [0, 0]])
-        if coildim != -1:
-            fids = np.transpose(np.reshape(fids, [-1, raw_avgs, ncoil]), [0, 2, 1])
-            # fids=np.reshape(fids,[-1,ncoil,raw_avgs])
+        # Pad zeros to match original length if needed
+        fids = np.pad(fids_trunc, ((0, ADC_OFFSET), (0, 0)), 'constant')
+
+        # Create FID object
         fid1 = FID(fids, raw_avgs, spectralwidth, txfrq, te, tr, sequence, subSpecs, rawSubspecs)
         fid1.dims['averages'] = avgdim
         fid1.dims['t'] = 0
@@ -244,7 +248,7 @@ def io_loadspec_bruk(inDir, spectrometer=False, try_raw=False, info_dict=False, 
         fid1.dims['subSpecs'] = -1
         fid1.dims['extras'] = -1
         if fid1.dims['subSpecs'] == 0:
-            fid1.flags['isFourSteps'] = 0
+            fid1.flags['isFourSteps'] = False
         else:
             fid1.flags['isFourSteps'] = (fid1.sz[fid1.dims['subSpecs']] == 4)
         return fid1, raw_avgs
