@@ -1,0 +1,74 @@
+# Windows specific files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+*.ini
+*.tmp
+
+# Zone Identifier files (alternate data streams)
+*.Zone.Identifier
+
+# Dropbox files
+.dropbox
+.dropbox.cache
+
+# WSL2 specific files (e.g., temporary, cache)
+*.bak
+*.swp
+*.swo
+.cache/
+.trash/
+*.~lock.*
+
+# Python specific
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+# Virtual environments
+env/
+venv/
+.venv/
+.Python
+pip-log.txt
+
+# PyCharm specific files
+.idea/
+*.iml
+*.iws
+.idea_modules/
+.idea/*workspace.xml
+.idea/*tasks.xml
+.idea/*modules.xml
+.idea/*_store/
+.idea/dictionaries/
+.idea/shelf/
+.idea/deployment.xml
+.idea/vcs.xml
+.idea/jsLibraryMappings.xml
+.idea/webResources.xml
+.idea/httpRequests/
+.idea/replstate.xml
+.idea/.gitignore
+
+# Byte-compiled files
+*.py[cod]
+*$py.class
+
+# Logs and reports
+*.log
+*.out
+*.err
+
+# OS specific files
+.DS_Store
+.DS_Store?
+.Spotlight-V100
+.Trashes
+*.swp
+._*
+*.Identifier
