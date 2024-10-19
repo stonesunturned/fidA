@@ -450,24 +450,6 @@ def op_lorentz(ppm,amp,fwhm,ppm0,base_off=0,ph0=0):
         y[act,:]=np.real(add_phase(y[act,:]/np.amax(np.abs(y[act,:]))*aval+base_off,ph0))
     y=np.sum(y,axis=0)
     return y.squeeze()
-
-def op_median(indat):
-    if indat.flags['averaged'] or indat.dims['averages']==-1 or indat.averages<2:
-        print('ERROR:  Averaging has already been performed!  Aborting!')
-        outdat=indat
-    else:
-        outdat=indat.copy()
-        # add the spectrum along the averages dimension
-        outdat.fids=np.median(indat.fids,axis=indat.dims['averages']).squeeze()
-        # change dims variable and update flags
-        for eachvar in ['t','coils','subSpecs','extras']:
-            if indat.dims[eachvar]>indat.dims['averages']:
-                outdat.dims[eachvar]=indat.dims[eachvar]-1
-        outdat.dims['averages']=-1
-        outdat.averages=1
-        outdat.flags['averaged']=True
-        outdat.flags['writtentostruct']=True
-    return outdat
     
 def op_peakFit(inspec,ppm,amp,fwhm,ppm0,base_off,ph0,ppmmin=0,ppmmax=4.2):
     ppmrange,specrange=freqrange(inspec,ppm,ppmmin,ppmmax)
