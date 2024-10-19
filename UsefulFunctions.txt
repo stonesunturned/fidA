@@ -1,10 +1,10 @@
 op_alignScans - Ira
 op_addrcvrs - Colleen
 op_combinesubspecs
-op_complexConj
-op_downsamp
-op_fourStepCombine
+op_complexConj - Colleen
+op_downsample
 op_filter
 op_leftshift
 op_median - Ira
-op_rmbadaverages
+op_rmbadaverages - Colleen
+
