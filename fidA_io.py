@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 import fidA_processing as fop
 from spec2nii.GE.ge_pfile import read_pfile
 
+
 class FID(object):
     """
     class FID(object)
@@ -73,6 +74,7 @@ class FID(object):
             self.flags['averaged']=True
         else:
             self.flags['averaged']=False
+
     @property
     def specs(self):
         return fftshift(ifft(self.fids,axis=self.dims['t']),axes=self.dims['t'])
@@ -245,234 +247,117 @@ def get_par(fname,parname,vartype='float'):
     else:
         raw_par=line[line.find('=')+1:].strip()
     return raw_par
-        
-def io_loadspec_GE(fname,subspecs=1):
-    # Using the existing spec2nii to load into nifti_mrs and then convert that 
-    # into the FID object
-    # Right now, the fn_out filename is unused from this call.
-    data,fnames=read_pfile(fname,'fn_out.txt')
-    # note that data is a list of len(2) in this case.
-    # It looks like the data are in data[0].image.data and dimensions are 
-    # [cols,rows,slices,numTimePts, numCoils,numSpecPts] where row,cols,slice are all 1 for SVS data
-    out1=data[0]
-    hdr=out1.header
-    hdr_ext=out1.hdr_ext.to_dict()
-    fids=out1.image.data
-    f0=hdr_ext['SpectrometerFrequency']
-    dt=out1.dwelltime
-    sw=1/dt
-    # These are the initial dimensions for NIfTI MRS. Will permute later for FID-A
-    dims=dict()
-    dims['x']=0; dims['y']=1; dims['z']=2; dims['t']=3
-    fidA_dictnames=['coils','averages','subSpecs','subSpecs','extras','extras','extras','extras','extras','extras','extras','extras']
-    nift_dictnames=['DIM_COIL','DIM_DYN','DIM_EDIT','DIM_ISIS','DIM_INDIRECT_0','DIM_INDIRECT_1','DIM_INDIRECT_2','DIM_PHASE_CYCLE','DIM_MEAS','DIM_USER_0','DIM_USER_1','DIM_USER_2']
-    for dctnm, niftinm in zip(fidA_dictnames,nift_dictnames):
-        try:
-            dims[dctnm]=out1.dim_tags.index(niftinm)+4
-        # We set any missing dimensions to -1
-        except ValueError:
-            if dctnm not in dims.keys(): # some key names are repeated because NIFTI has more possible dimensions than fidA and we don't want to erase things already set
-                dims[dctnm]=-1
-    allDims=out1.shape #FidA io_loadspec_niimrs excludes the first dimension for some reason
-    # Find the number of averages. 'averages' will specify the current number of averages in 
-    # the dataset as it is proposed, which may be subject to change. 'rawAverages' will specify
-    # the original number of acquired averages in the dataset, which is unchangeable.
-    if dims['subSpecs']!=-1:
-        if dims['averages']!=-1:
-            averages=allDims[dims['averages']]*allDims[dims['subSpecs']]
-            rawAverages=averages
-        else:
-            averages=allDims[dims['subSpecs']]
-            rawAverages=1
-    else:
-        if dims['averages']!=-1:
-            averages=allDims[dims['averages']]
-            rawAverages=averages
-        else:
-            averages=1
-            rawAverages=1
-    # Find the number of subspecs
-    # 'subSpecs' will specify the current number of subspectra and 'rawSubspecs'
-    # will specify the original number of acquired subspectra in the dataset
-    if dims['subSpecs']!=-1:
-        subSpecs=allDims[dims['subSpecs']]
-        rawSubspecs=subSpecs
-    else:
-        subSpecs=1
-        rawSubspecs=subSpecs
-    # Order the data and dimensions
-    if allDims[0]*allDims[1]*allDims[2]==1: #SVS, but there is no other case currently written in Matlab
-        dims['x']=-1
-        dims['y']=-1
-        dims['z']=-1
-        fids=np.squeeze(fids)
-        # permute so the order is [time domain,coils,averages,subSpecs,extras]
-        dims={dimname:dimval-3 if dimval!=-1 else dimval for dimname,dimval in dims.items()}
-        sqzDims=[dimname for dimname,dimval in dims.items() if dimval!=-1]
-        # The Matlab code for io_loadspec_niimrs is quite long and repetitive, 
-        # but I think that it should be possible to just reorder sqzDims since 
-        # all possible dimensions are in dims.keys() but just -1 if not present 
-        # (even if they weren't) present, adding a try, catch KeyError should work.
-        dimorder=['t','coils','averages','subSpecs','extras']
-        sqzDims=[dimname for dimname in dimorder if dims[dimname]!=-1]
-        fids=np.transpose(fids,[dims[kval] for kval in sqzDims])
-        # then we need to reassign the values in dims to reflect the new ordering
-        for dimct,dimnm in enumerate(sqzDims):
-            dims[dimnm]=dimct
-        # Compared to NIfTI MRS, fidA apparently needs the conjugate
-        fids=np.conj(fids)
-        flagpars=['getftshifted','filtered','zeropadded','freqcorrected','phasecorrected',
-                  'subtracted','writtentotext','downsampled','avgNormalized',
-                  'isFourSteps','leftshifted']
-        flagdict={parnm:False for parnm in flagpars}
-        flagdict['writtentostruct']=True
-        flagdict['gotparams']=True
-        if dims['averages']==-1:
-            flagdict['averages']=True
-        else:
-            flagdict['averages']=False
-        if dims['coils']==-1:
-            flagdict['addedrcvrs']=True
-        else:
-            flagdict['addedrcvrs']=False
-        if dims['subSpecs']==-1:
-            flagdict['isFourSteps']=False
-        else:
-            flagdict['isFourSteps']=(fids.shape[dims['subSpecs']]==4)
-        # Are there cases where the out1.spectrometer_frequency list will be longer?
-        outnii=FID(fids,rawAverages,sw,out1.spectrometer_frequency[0]*1e6,hdr_ext['EchoTime']*1000,hdr_ext['RepetitionTime']*1000,sequence=hdr_ext['SequenceName'],subSpecs=subSpecs,rawSubspecs=rawSubspecs,dims=dims,flags=flagdict)
-        # Matlab's load for niimrs saves some extra stuff, like the nucleus and 
-        # hdr. Need to put these in the __init__ for the FID object if I want to
-        # have them. Not currently needed for fidA, where some functions use 
-        # GAMMAP and so assume proton, but this would be easy enough to change.
-        #outnii.nucleus=out1.nucleus
-        #outnii.nii_mrs.hdr=hdr
-        #outnii.nii_mrs.hdr_ext=hdr_ext
-    # Note that I probably need to do the same thing for data[1]. I assume one of these is the reference.
-    # Also, I intended to write an niimrs to fidA function but some things are probably
-    # vendor-specific so I'll have to work out which those are.
-    # I think that this could be shortened up a lot by recognizing what is already being done in the FIDS object
-    # Also, I have the subspec argument at the top that I need to see if I need by checking against io_loadspec_GE.m
-    return outnii
 
-def io_loadspec_bruk(inDir,spectrometer=False,try_raw=False,info_dict=False,ADC_OFFSET=68):
+def io_loadspec_bruk(inDir, spectrometer=False, try_raw=False, info_dict=False, ADC_OFFSET=68):
     # Get relevant parameters (this could be done more efficiently by opening files once at the start and reading all relevant parameters from one opening)
     if spectrometer:
-        dic1=read_jcamp_spec(os.path.join(inDir,'acqu'))
-        spectralwidth=dic1['SW_h']
-        txfrq=dic1['SFO1']*1e6
-        te=-1
-        tr=-1
-        sequence=dic1['PULPROG'][1:-1]
+        dic1 = read_jcamp_spec(os.path.join(inDir, 'acqu'))
+        spectralwidth = dic1['SW_h']
+        txfrq = dic1['SFO1'] * 1e6
+        te = -1
+        tr = -1
+        sequence = dic1['PULPROG'][1:-1]
         if info_dict:
-            info_dict=dic1
+            info_dict = dic1
         else:
-            info_dict=None
+            info_dict = None
     else:
-        spectralwidth=get_par(os.path.join(inDir,'method'),'$PVM_DigSw')
-        txfrq=get_par(os.path.join(inDir,'acqp'),'$BF1')*1e6
-        te=get_par(os.path.join(inDir,'method'),'$PVM_EchoTime')
-        tr=get_par(os.path.join(inDir,'method'),'$PVM_RepetitionTime')
-        sequence=get_par(os.path.join(inDir,'method'),'$Method','string')
+        spectralwidth = get_par(os.path.join(inDir, 'method'), '$PVM_DigSw')
+        txfrq = get_par(os.path.join(inDir, 'acqp'), '$BF1') * 1e6
+        te = get_par(os.path.join(inDir, 'method'), '$PVM_EchoTime')
+        tr = get_par(os.path.join(inDir, 'method'), '$PVM_RepetitionTime')
+        sequence = get_par(os.path.join(inDir, 'method'), '$Method', 'string')
         if info_dict:
-            info_dict=read_jcamp_spec(os.path.join(inDir,'method'))
+            info_dict = read_jcamp_spec(os.path.join(inDir, 'method'))
         else:
-            info_dict=None
+            info_dict = None
     # Specify the number of subspecs.  For now, this will always be one.
-    subSpecs=1; rawSubspecs=1
-    
-    def get_spec(fname,raw_avgs=None):
-        fid_data=np.fromfile(fname,dtype=np.int32)
-        real_fid = fid_data[::2]
-        imag_fid = fid_data[1::2]
-        fids_raw=real_fid+1j*imag_fid
+    subSpecs = 1
+    rawSubspecs = 1
+
+    def get_spec(fname, raw_avgs=None):
+        fid_data = np.fromfile(fname, dtype=np.int32)
+        # Corrected indexing to match MATLAB behavior
+        imag_fid = fid_data[0::2]
+        real_fid = fid_data[1::2]
+        fids_raw = real_fid - 1j * imag_fid
         if fname.endswith('fid.raw') or fname.endswith('rawdata.job0'):
-            # I need more info here. When you use the 2x2 linear array, the rawdata
-            # file includes info from all 4 coils, so I should try to read that
-            # in and split it up. Not sure if there is a number of coils parameter
-            # but you could read in averages, number of points and then everything else
-            raw_avgs=get_par(os.path.join(inDir,'method'),'$PVM_NAverages','int')
-            expmode=get_par(os.path.join(inDir,'acqp'),'$ACQ_experiment_mode','string')
-            if expmode.strip()=='ParallelExperiment':
-                ncoil=int(get_par(os.path.join(inDir,'acqp'),'$ACQ_ReceiverSelect','string').split()[1])
-                coildim=1
-                avgdim=2
-                fids_raw=np.reshape(fids_raw,[raw_avgs*ncoil,-1]).T
+            # Additional code to handle specific file types
+            raw_avgs = get_par(os.path.join(inDir, 'method'), '$PVM_NAverages', 'int')
+            expmode = get_par(os.path.join(inDir, 'acqp'), '$ACQ_experiment_mode', 'string')
+            if expmode.strip() == 'zzParallelExperiment':
+                ncoil = int(get_par(os.path.join(inDir, 'acqp'), '$ACQ_ReceiverSelect', 'string').split()[1])
+                coildim = 1
+                avgdim = 2
+                fids_raw = np.reshape(fids_raw, [raw_avgs * ncoil, -1]).T
             else:
-                coildim=-1
-                avgdim=1
-                fids_raw=np.reshape(fids_raw,[raw_avgs,-1]).T
-            # So now the problem is that I need to reshape for the number of coils
-            # But this will affect the number of dimensions, which in turn affects
-            # the fid_trunc calculation and maybe the pad??
+                coildim = -1
+                avgdim = 1
+                fids_raw = np.reshape(fids_raw, [raw_avgs, -1]).T
         elif fname.endswith('fid'):
-            if os.path.exists(os.path.join(inDir,'method')):
-                raw_dat_pts=get_par(os.path.join(inDir,'method'),'$PVM_DigNp','int')
+            if os.path.exists(os.path.join(inDir, 'method')):
+                raw_dat_pts = get_par(os.path.join(inDir, 'method'), '$PVM_DigNp', 'int')
             else:
-                raw_dat_pts=len(real_fid)
-            raw_avgs=int(np.shape(real_fid)[0]/raw_dat_pts)
-            if np.mod(real_fid.shape[0],raw_dat_pts)!=0:
-                print('number of repetitions cannot be accurately found')
-            fids_raw=np.reshape(fids_raw,[-1,raw_dat_pts]).T
-            avgdim=-1
-            coildim=-1
+                raw_dat_pts = len(real_fid)
+            raw_avgs = int(np.shape(real_fid)[0] / raw_dat_pts)
+            if np.mod(real_fid.shape[0], raw_dat_pts) != 0:
+                print('Number of repetitions cannot be accurately found')
+            fids_raw = np.reshape(fids_raw, [-1, raw_dat_pts]).T
+            avgdim = -1
+            coildim = -1
         elif fname.endswith('fid.ref'):
-            fids_raw=np.reshape(fids_raw,[raw_avgs,-1]).T
-            avgdim=1
-            coildim=-1
+            fids_raw = np.reshape(fids_raw, [raw_avgs, -1]).T
+            avgdim = 1
+            coildim = -1
         elif fname.endswith('fid.refscan'):
-            raw_dat_pts=len(real_fid)
-            raw_avgs=1
-            if np.mod(real_fid.shape[0],raw_dat_pts)!=0:
-                print('number of repetitions cannot be accurately found for refscan file')
-            fids_raw=np.reshape(fids_raw,[-1,raw_dat_pts]).T
-            avgdim=-1
-            coildim=-1
+            raw_dat_pts = len(real_fid)
+            raw_avgs = 1
+            if np.mod(real_fid.shape[0], raw_dat_pts) != 0:
+                print('Number of repetitions cannot be accurately found for refscan file')
+            fids_raw = np.reshape(fids_raw, [-1, raw_dat_pts]).T
+            avgdim = -1
+            coildim = -1
         try:
-            fids_trunc=fids_raw[ADC_OFFSET:,:]
+            fids_trunc = fids_raw[ADC_OFFSET:, :]
         except IndexError:
-            fids_trunc=np.expand_dims(fids_raw,axis=1)
-            fids_trunc=fids_trunc[ADC_OFFSET:,:]
-        fids=np.pad(fids_trunc, pad_width=[[0,ADC_OFFSET],[0,0]])
-        if coildim!=-1:
-            fids=np.transpose(np.reshape(fids,[-1,raw_avgs,ncoil]),[0,2,1])
-            #fids=np.reshape(fids,[-1,ncoil,raw_avgs])
-        fid1=FID(fids,raw_avgs,spectralwidth,txfrq,te,tr,sequence,subSpecs,rawSubspecs)
-        fid1.dims['averages']=avgdim
-        fid1.dims['t']=0
-        fid1.dims['coils']=coildim
-        fid1.dims['subSpecs']=-1
-        fid1.dims['extras']=-1
-        if fid1.dims['subSpecs']==0:
-            fid1.flags['isFourSteps']=0
+            fids_trunc = np.expand_dims(fids_raw, axis=1)
+            fids_trunc = fids_trunc[ADC_OFFSET:, :]
+        fids = np.pad(fids_trunc, pad_width=[[0, ADC_OFFSET], [0, 0]])
+        if coildim != -1:
+            fids = np.transpose(np.reshape(fids, [-1, raw_avgs, ncoil]), [0, 2, 1])
+        fid1 = FID(fids, raw_avgs, spectralwidth, txfrq, te, tr, sequence, subSpecs, rawSubspecs)
+        fid1.dims['averages'] = avgdim
+        fid1.dims['t'] = 0
+        fid1.dims['coils'] = coildim
+        fid1.dims['subSpecs'] = -1
+        fid1.dims['extras'] = -1
+        if fid1.dims['subSpecs'] == 0:
+            fid1.flags['isFourSteps'] = 0
         else:
-            fid1.flags['isFourSteps']=(fid1.sz[fid1.dims['subSpecs']]==4)
-        return fid1,raw_avgs
-    
+            fid1.flags['isFourSteps'] = (fid1.sz[fid1.dims['subSpecs']] == 4)
+        return fid1, raw_avgs
+
     # First try to load fid.raw file. If that does not work, use regular fid
     if try_raw:
         try:
-            outfid,rawavg1=get_spec(os.path.join(inDir,'rawdata.job0'))
+            outfid, rawavg1 = get_spec(os.path.join(inDir, 'rawdata.job0'))
         except FileNotFoundError:
-            outfid,rawavg1=get_spec(os.path.join(inDir,'fid.raw'))
+            outfid, rawavg1 = get_spec(os.path.join(inDir, 'fid.raw'))
     else:
-        #untested since I don't have an example dataset with .raw missing
+        # Untested since I don't have an example dataset with .raw missing
         print('WARNING: /fid.raw not found. Using /fid ....')
-        outfid,rawavg1=get_spec(os.path.join(inDir,'fid'))
-        
-    # NOW TRY LOADING IN THE REFERENCE SCAN DATA (IF IT EXISTS)
-    # In PV6.0.1, I think the reference scan data is just saved in fid.refscan
-    # We never do more than one average, so I'm not sure if averages are 
-    # ever saved separately. In any case, rawdata.job1 is the navigator so
-    # that's not the reference scan raw data and I've removed the if try_raw block
-    if os.path.isfile(os.path.join(inDir,'fid.ref')):
-        reffid,rawavg2=get_spec(os.path.join(inDir,'fid.ref'),raw_avgs=rawavg1)
-    elif os.path.isfile(os.path.join(inDir,'fid.refscan')):
-        reffid,rawavg2=get_spec(os.path.join(inDir,'fid.refscan'),raw_avgs=rawavg1)
+        outfid, rawavg1 = get_spec(os.path.join(inDir, 'fid'))
+
+    # Now try loading in the reference scan data (if it exists)
+    if os.path.isfile(os.path.join(inDir, 'fid.ref')):
+        reffid, rawavg2 = get_spec(os.path.join(inDir, 'fid.ref'), raw_avgs=rawavg1)
+    elif os.path.isfile(os.path.join(inDir, 'fid.refscan')):
+        reffid, rawavg2 = get_spec(os.path.join(inDir, 'fid.refscan'), raw_avgs=rawavg1)
     else:
         print('Could not find reference scan. Skipping')
-        reffid=0
-    return outfid,reffid,info_dict
+        reffid = 0
+    return outfid, reffid, info_dict
+
 
 def read_jcamp_spec(fname):
     """
@@ -606,9 +491,60 @@ def io_writelcm(infid,outfile,te=None,vol=8.0):
         for eachct in range(RF.shape[0]):
             f.write('  {:7.6e}  {:7.6e}\n'.format(RF[eachct,0],RF[eachct,1]))
 
+def op_median(in_fid):
+    """
+    Combine the averages in a scan by calculating the median of all averages.
+
+    Parameters:
+    in_fid (FID): Input data in FID object format.
+
+    Returns:
+    FID: Output dataset following median calculation.
+    """
+    # Check if the data is already averaged or has less than 2 averages
+    if in_fid.flags['averaged'] or in_fid.dims['averages'] == -1 or in_fid.averages < 2:
+        print('WARNING: No averages found! Returning input without modification!')
+        return in_fid
+
+    # Calculate the median along the averages dimension
+    fids_real_median = np.median(np.real(in_fid.fids), axis=in_fid.dims['averages'])
+    fids_imag_median = np.median(np.imag(in_fid.fids), axis=in_fid.dims['averages'])
+    fids = fids_real_median + 1j * fids_imag_median
+    fids = np.squeeze(fids)
+
+    # Update dims
+    dims = in_fid.dims.copy()
+    averages_dim = in_fid.dims['averages']
+
+    # Adjust dimensions based on the averages dimension
+    for key in dims.keys():
+        if dims[key] > averages_dim:
+            dims[key] -= 1
+        elif dims[key] == averages_dim:
+            dims[key] = -1  # Set to -1 since we've averaged over it
+
+    # Create the output FID object
+    out = in_fid.copy()
+    out.fids = fids
+    out.dims = dims
+    out.averages = 1
+    out.flags = in_fid.flags.copy()
+    out.flags['writtentostruct'] = True
+    out.flags['averaged'] = True
+
+    # No need to assign to out.specs; it will be computed automatically using the updated fids
+
+    return out
+
+
+
 if __name__ == '__main__':
     """
     for debugging
     """
-    fname='C:\\Users\\cemb6\\Documents\\Work\\FID-A\\exampleData\\GE\\sample01_press\\press\\P17920.7'
-    out1=io_loadspec_GE(fname)
+    fname='/mnt/d/Bruker_press'
+    fpath = ''
+    outfid, reffid, info_dict = io_loadspec_bruk(fname, try_raw=True)
+    print(outfid.sz)
+    median_outfid = op_median(outfid)
+    print(median_outfid.specs)
