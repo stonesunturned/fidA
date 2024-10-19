@@ -1,4 +1,4 @@
-op_alignScans - Ira
+op_alignScans
 op_addrcvrs - Colleen
 op_combinesubspecs
 op_complexConj - Colleen
