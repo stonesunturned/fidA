@@ -2,8 +2,8 @@ from setuptools import setup, find_packages
 
 setup(
     name='fidA',
-    version='0.1.0',
-    author='Colleen Bailey',
+    version='0.1.1',
+    author='Colleen Bailey and Ira Yao',
     author_email='colleen.em.bailey@gmail.com',
     description='A Python package for FID-A processing based on the MATLAB code by Jamie Near',
     long_description=open('README.md').read(),
