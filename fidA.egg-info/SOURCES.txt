@@ -1,0 +1,9 @@
+LICENSE.md
+README.md
+pyproject.toml
+setup.py
+fidA.egg-info/PKG-INFO
+fidA.egg-info/SOURCES.txt
+fidA.egg-info/dependency_links.txt
+fidA.egg-info/requires.txt
+fidA.egg-info/top_level.txt
